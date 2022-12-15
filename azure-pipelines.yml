@@ -1,0 +1,66 @@
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+name: '$(Build.SourceBranchName)$(rev:.r)'
+
+trigger:
+- release/*
+
+pool:
+  vmImage: 'windows-latest'
+
+
+variables:
+  solution: '**/**.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  Version.Revision: '$(Build.SourceBranchName)'
+  Version.Formatted: '$(Build.BuildNumber)'
+
+steps:
+- task: NuGetToolInstaller@1
+
+- task: NuGetCommand@2
+  displayName: 'NuGet Solution Restore'
+  inputs:
+    command: 'restore'
+    restoreSolution: '$(solution)'
+    feedsToUse: 'select'
+    vstsFeed: '0ddd6187-3494-46a5-b396-8f7be21064a3/dca352bc-32b5-4be1-8ff4-feab1bb0eb73'
+
+- task: VSBuild@1
+  inputs:
+    solution: '$(solution)'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: VSTest@2
+  inputs:
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: NuGetCommand@2
+  displayName: 'NuGet Pack Source Code Artifact Package'
+  inputs:
+    command: 'pack'
+    packagesToPack: 'DeploymentPackage/source.nuspec'
+    versioningScheme: 'byEnvVar'
+    versionEnvVar: 'Version.Formatted'
+
+- task: NuGetAuthenticate@0
+  displayName: 'NuGet Authenticate'
+
+- task: NuGetCommand@2
+  displayName: 'NuGet Push Source Code Artifact Package'
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'internal'
+    publishVstsFeed: '0ddd6187-3494-46a5-b396-8f7be21064a3/dca352bc-32b5-4be1-8ff4-feab1bb0eb73'
+    allowPackageConflicts: true
+    
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Build Artifacts to Pipeline'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
