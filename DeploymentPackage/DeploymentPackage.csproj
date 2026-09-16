@@ -7,8 +7,8 @@
     <ProjectGuid>{FCEA2643-D485-426E-BD19-4546FD5E9386}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CCLLC.Cds.DeploymentPackage</RootNamespace>
-    <AssemblyName>CCLLC.Cds.DeploymentPackage</AssemblyName>
+    <RootNamespace>JMCL.Dataverse.DeploymentPackage</RootNamespace>
+    <AssemblyName>JMCL.Dataverse.DeploymentPackage</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -137,7 +137,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CCLLCImportExtension.cs" />
+    <Compile Include="JmclImportExtension.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

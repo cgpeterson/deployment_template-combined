@@ -6,3 +6,6 @@
 /DeploymentPackage/bin
 /DeploymentPackage/obj
 /packages
+
+# macOS
+.DS_Store

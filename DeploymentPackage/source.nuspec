@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0"?>
 <package>
   <metadata minClientVersion="3.3.0">
-    <id>IRIS.Cds.DeploymentTemplate.Sources</id>
+    <id>JMCL.Dataverse.DeploymentTemplate.Sources</id>
     <version>$version$</version>
     <description>PowerShell scripts and base template for creating deployment packages for Power Apps and Dynamics CE.</description>
-    <authors>Scott Colson</authors>
-    <owners>Colson Code, LLC</owners>
+    <authors>Jeff Maughan</authors>
+    <owners>Jeff Maughan</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>    
-    <projectUrl>https://colsoncode.visualstudio.com/CCLLC/_git/CdsDeploymentTemplate</projectUrl>
+    <projectUrl>https://github.com/geophray/deployment_template</projectUrl>
     <tags></tags>
     <dependencies>
       <dependency id="Microsoft.CrmSdk.UII.CommonAssemblies" version="9.0.0.10" />
@@ -15,8 +15,8 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="CCLLCImportExtension.cs" target="content/" />    
+    <file src="JmclImportExtension.cs" target="content/" />    
     <file src="DevOps\**\*.ps1" target="content/DevOps" />
-	<file src="Devops\Tools\**" target="content/DevOps/Tools" exclude="DevOps\Tools\MyCdsSandboxConnection.ps1" />
+	<file src="DevOps\Tools\**" target="content/DevOps/Tools" exclude="DevOps\Tools\MyCdsSandboxConnection.ps1" />
   </files>
 </package>
