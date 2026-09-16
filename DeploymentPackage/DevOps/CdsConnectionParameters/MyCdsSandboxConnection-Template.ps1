@@ -26,4 +26,10 @@ $orgName = "[mydev]" # [mydev].crm.dynamics.com
     PacConnectionParameter = @{
         EnvironmentUrl = "https://$orgName.crm.dynamics.com"
     }
+
+    # Only EnvironmentUrl is per-developer here. Cloud, ProfileName, TenantId and the site
+    # identity are project constants and live in Sites\_site-config\PortalToolkit.Config.psd1.
+    PowerPagesConnectionParameter = @{
+        EnvironmentUrl = "https://$orgName.crm.dynamics.com"
+    }
 }

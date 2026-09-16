@@ -14,12 +14,25 @@
     $PackageType = "Unmanaged",   
 
     # The available actions to perform during the import
-    [ValidateSet("All","Solutions","ConfigData","TestData","Compress-CrmSolution","Compress-ConfigData","Merge-ConfigData","Compress-TestData","Merge-TestData","New-CrmPackage","Invoke-ImportCrmPackage","Import-DocumentTemplates")]
+    [ValidateSet("All","Solutions","ConfigData","TestData","Compress-CrmSolution","Compress-ConfigData","Merge-ConfigData","Compress-TestData","Merge-TestData","New-CrmPackage","Invoke-ImportCrmPackage","Import-DocumentTemplates","Stage-PortalChange","Upload-StagedPortalChanges")]
     [string[]]
     $Actions = "All",
 
 	[switch]
-	$ResetEnvironment
+	$ResetEnvironment,
+
+	# Passed through to Stage-PortalChange.ps1 / Upload-StagedPortalChanges.ps1
+	[string]
+	$SiteFolderName,
+
+	# Passed through to Upload-StagedPortalChanges.ps1. Not included under 'All' --
+	# see the 'Upload-StagedPortalChanges' action block below.
+	[switch]
+	$DryRun,
+
+	# Passed through to Upload-StagedPortalChanges.ps1
+	[switch]
+	$SkipFieldPatcher
 )
 
 $global:ErrorActionPreference = "Stop"
@@ -207,4 +220,35 @@ if($settings.DocumentTemplates `
         
         $crmConnection = Get-CrmConnection @crmConnectionParameters
         Import-DocumentTemplates -Conn @crmConnection -TemplateDirectory $path
+}
+
+# ---------------------------------------------------------------------------
+# Stage Portal Change — local git-index helper, no environment connection
+# needed. Included under 'All', same as the Compress-*/Merge-* actions above,
+# since it only touches files already on disk / staged in git.
+# ---------------------------------------------------------------------------
+
+if ("All" -in $Actions -or "Stage-PortalChange" -in $Actions) {
+    Write-Host ""
+    Write-Host "================================================================"
+    Write-Host "Stage Portal Change"
+    Write-Host "================================================================"
+    & "$PSScriptRoot\Stage-PortalChange.ps1" -SiteFolderName $SiteFolderName
+}
+
+
+# ---------------------------------------------------------------------------
+# Upload Staged Portal Changes — pushes staged Power Pages changes to the
+# live environment. NOT included under 'All' (unlike Stage-PortalChange
+# above) since this is a real push to a live environment, not a local-only
+# operation — requires explicit -Actions Upload-StagedPortalChanges. It has
+# its own Y/N confirmation gate as a second line of defense.
+# ---------------------------------------------------------------------------
+
+if ("Upload-StagedPortalChanges" -in $Actions) {
+    Write-Host ""
+    Write-Host "================================================================"
+    Write-Host "Upload Staged Portal Changes"
+    Write-Host "================================================================"
+    & "$PSScriptRoot\Upload-StagedPortalChanges.ps1" -ConnectionName $ConnectionName -SiteFolderName $SiteFolderName -DryRun:$DryRun -SkipFieldPatcher:$SkipFieldPatcher
 }
