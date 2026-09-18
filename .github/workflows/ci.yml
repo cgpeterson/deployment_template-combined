@@ -1,4 +1,4 @@
-name: Publish deployment template package
+name: CI
 
 on:
   push:
@@ -13,8 +13,8 @@ jobs:
       contents: read
       # Trusted publishing (OIDC): exchanges a short-lived GitHub token for a
       # temporary nuget.org API key. No stored secret. The trusted publishing
-      # policy on nuget.org must name this repo, this workflow file
-      # (publish.yml) and the "nuget" environment.
+      # policy on nuget.org must name this repo, this workflow file (ci.yml)
+      # and the "nuget" environment.
       id-token: write
 
     steps:
@@ -40,6 +40,38 @@ jobs:
 
       - name: Build solution
         run: msbuild CdsDeploymentTemplate.sln /p:Configuration=Release /verbosity:minimal
+
+      # Placeholder for the VSTest@2 step in Colson's original
+      # azure-pipelines.yml. There is no test project in this repo today --
+      # CdsDeploymentTemplate.sln has exactly one project,
+      # DeploymentPackage.csproj, compiling only JmclImportExtension.cs and
+      # AssemblyInfo.cs -- so this currently finds nothing and passes,
+      # exactly like VSTest@2 did against the same solution. Once a test
+      # project is added (conventionally named *Tests.csproj, producing
+      # *Tests.dll under a bin\ output folder), this picks it up
+      # automatically; no workflow change needed. Kept as a placeholder
+      # deliberately, not dropped: see the "Restore build/verify step" commit
+      # for why VSTest wasn't just silently carried forward or left out.
+      - name: Run tests
+        shell: pwsh
+        run: |
+          $testDlls = Get-ChildItem -Path . -Recurse -Include "*Tests.dll" -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -match '\\bin\\' }
+
+          if (-not $testDlls) {
+            Write-Host "No test assemblies found yet; nothing to run (placeholder for future tests)."
+            exit 0
+          }
+
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vstest = & $vswhere -latest -products * -find "**\vstest.console.exe" | Select-Object -First 1
+          if (-not $vstest) {
+            Write-Error "Test assemblies found but vstest.console.exe could not be located."
+            exit 1
+          }
+
+          & $vstest $testDlls.FullName
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Derive version from tag
         id: version

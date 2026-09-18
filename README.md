@@ -111,9 +111,11 @@ dependency and receives updates to this template centrally.
 
 ## Pipeline
 
-`.github/workflows/publish.yml` packs and publishes `source.nuspec` to nuget.org on a `v*` tag,
-using trusted publishing (OIDC) -- no stored API key -- the same approach used by the JMCL code
-libraries.
+`.github/workflows/ci.yml` restores and builds `CdsDeploymentTemplate.sln`, runs tests (a
+placeholder today -- there is no test project yet), then packs and publishes `source.nuspec` to
+nuget.org, all on a `v*` tag. Publishing uses trusted publishing (OIDC) -- no stored API key -- the
+same approach used by the JMCL code libraries. Named to match JMCL's own `ci.yml`, even though this
+one workflow currently only runs on a tag rather than on every push or PR.
 
 `azure-pipelines.yml` and `DeploymentPackage/PipelineTemplate/azure-pipelines.yml` are an earlier
 Azure DevOps setup, kept as reference rather than current. They are not wired to any live pipeline
