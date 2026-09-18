@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    environment: nuget
+    permissions:
+      contents: read
+      # Trusted publishing (OIDC): exchanges a short-lived GitHub token for a
+      # temporary nuget.org API key. No stored secret. The trusted publishing
+      # policy on nuget.org must name this repo, this workflow file (ci.yml)
+      # and the "nuget" environment.
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: nuget/setup-nuget@v3
+        with:
+          nuget-version: '6.x'
+
+      - uses: microsoft/setup-msbuild@v3
+
+      # DeploymentPackage.csproj isn't shipped in the package -- source.nuspec
+      # only ever pulls JmclImportExtension.cs in as raw content -- but it's
+      # the one thing in this repo that's actually compiled, and
+      # JmclImportExtension.cs is both compiled here and shipped as source.
+      # Building it before packing is the same check Colson's original
+      # azure-pipelines.yml ran before its own pack/push (restore, VSBuild),
+      # just not carried over when this workflow was first written. Skipping
+      # it would let a broken JmclImportExtension.cs get packed and pushed
+      # with nothing catching it until a consumer's own build fails.
+      - name: Restore solution
+        run: nuget restore CdsDeploymentTemplate.sln
+
+      - name: Build solution
+        run: msbuild CdsDeploymentTemplate.sln /p:Configuration=Release /verbosity:minimal
+
+      # Placeholder for the VSTest@2 step in Colson's original
+      # azure-pipelines.yml. There is no test project in this repo today --
+      # CdsDeploymentTemplate.sln has exactly one project,
+      # DeploymentPackage.csproj, compiling only JmclImportExtension.cs and
+      # AssemblyInfo.cs -- so this currently finds nothing and passes,
+      # exactly like VSTest@2 did against the same solution. Once a test
+      # project is added (conventionally named *Tests.csproj, producing
+      # *Tests.dll under a bin\ output folder), this picks it up
+      # automatically; no workflow change needed. Kept as a placeholder
+      # deliberately, not dropped: see the "Restore build/verify step" commit
+      # for why VSTest wasn't just silently carried forward or left out.
+      - name: Run tests
+        shell: pwsh
+        run: |
+          $testDlls = Get-ChildItem -Path . -Recurse -Include "*Tests.dll" -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -match '\\bin\\' }
+
+          if (-not $testDlls) {
+            Write-Host "No test assemblies found yet; nothing to run (placeholder for future tests)."
+            exit 0
+          }
+
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vstest = & $vswhere -latest -products * -find "**\vstest.console.exe" | Select-Object -First 1
+          if (-not $vstest) {
+            Write-Error "Test assemblies found but vstest.console.exe could not be located."
+            exit 1
+          }
+
+          & $vstest $testDlls.FullName
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Derive version from tag
+        id: version
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "Publishing version ${version}"
+
+      # Only nuget.exe supports packing directly from a .nuspec file; this
+      # package ships loose PowerShell/source content (JmclImportExtension.cs
+      # as raw source, DevOps/**), not a compiled DLL, so there is nothing for
+      # dotnet pack to do here even though the build step above does use
+      # msbuild.
+      - name: Pack
+        shell: bash
+        run: |
+          nuget pack DeploymentPackage/source.nuspec \
+            -Version "${{ steps.version.outputs.version }}" \
+            -OutputDirectory local-feed
+
+      - name: NuGet login (OIDC)
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          # nuget.org profile name, not email. Set as a repo/environment
+          # variable (Settings > Environments > nuget > Variables) rather
+          # than hardcoded here.
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Push to nuget.org
+        shell: bash
+        run: |
+          shopt -s nullglob
+          packages=(local-feed/*.nupkg)
+          if [[ ${#packages[@]} -eq 0 ]]; then
+            echo "::error::No .nupkg files found in local-feed/ to push."
+            exit 1
+          fi
+          for pkg in "${packages[@]}"; do
+            echo "Pushing ${pkg}..."
+            nuget push "${pkg}" \
+              -Source https://api.nuget.org/v3/index.json \
+              -ApiKey "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
+          done

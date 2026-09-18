@@ -1,4 +1,4 @@
-﻿<?xml version="1.0"?>
+<?xml version="1.0"?>
 <package>
   <metadata minClientVersion="3.3.0">
     <id>JMCL.Dataverse.DeploymentTemplate.Sources</id>
@@ -11,12 +11,27 @@
     <tags></tags>
     <dependencies>
       <dependency id="Microsoft.CrmSdk.UII.CommonAssemblies" version="9.0.0.10" />
-      <dependency id="Microsoft.CrmSdk.Deployment" version="9.0.2.4" />
+      <dependency id="Microsoft.CrmSdk.Deployment" version="9.0.2.26" />
     </dependencies>
   </metadata>
+  <!--
+    Intentionally content/, not contentFiles/: this package's job is to drop
+    JmclImportExtension.cs and the DevOps scripts onto disk in the consuming
+    project (populating DeploymentPackage/DevOps/), so they show up as real,
+    editable files a developer or another tool can run directly. That is
+    packages.config-era "content" install behavior. contentFiles/ (the
+    PackageReference-era equivalent) does NOT copy files to disk at all;
+    it only wires them into the build via a generated .targets file from
+    the NuGet cache, so it cannot reproduce this package's actual purpose.
+    This package's own consuming project (DeploymentPackage.csproj) is itself a
+    legacy, packages.config-style project, consistent with this choice.
+    If a future consuming project moves to PackageReference/SDK-style and
+    still needs the files physically on disk, that needs a different
+    mechanism (e.g. a build-time copy step), not contentFiles/.
+  -->
   <files>
-    <file src="JmclImportExtension.cs" target="content/" />    
+    <file src="JmclImportExtension.cs" target="content/" />
     <file src="DevOps\**\*.ps1" target="content/DevOps" />
-	<file src="DevOps\Tools\**" target="content/DevOps/Tools" exclude="DevOps\Tools\MyCdsSandboxConnection.ps1" />
+    <file src="DevOps\Tools\**" target="content/DevOps/Tools" exclude="DevOps\Tools\MyCdsSandboxConnection.ps1" />
   </files>
 </package>
