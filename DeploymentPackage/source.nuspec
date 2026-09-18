@@ -11,7 +11,7 @@
     <tags></tags>
     <dependencies>
       <dependency id="Microsoft.CrmSdk.UII.CommonAssemblies" version="9.0.0.10" />
-      <dependency id="Microsoft.CrmSdk.Deployment" version="9.0.2.4" />
+      <dependency id="Microsoft.CrmSdk.Deployment" version="9.0.2.26" />
     </dependencies>
   </metadata>
   <files>

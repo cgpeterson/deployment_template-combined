@@ -1,0 +1,69 @@
+name: Publish deployment template package
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    environment: nuget
+    permissions:
+      contents: read
+      # Trusted publishing (OIDC): exchanges a short-lived GitHub token for a
+      # temporary nuget.org API key. No stored secret. The trusted publishing
+      # policy on nuget.org must name this repo, this workflow file
+      # (publish.yml) and the "nuget" environment.
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Only nuget.exe supports packing directly from a .nuspec file; this
+      # package ships loose PowerShell/source content (JmclImportExtension.cs
+      # as raw source, DevOps/**), not a compiled DLL, so there is nothing for
+      # dotnet build/pack to do here.
+      - uses: nuget/setup-nuget@v3
+        with:
+          nuget-version: '6.x'
+
+      - name: Derive version from tag
+        id: version
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "Publishing version ${version}"
+
+      - name: Pack
+        shell: bash
+        run: |
+          nuget pack DeploymentPackage/source.nuspec \
+            -Version "${{ steps.version.outputs.version }}" \
+            -OutputDirectory local-feed
+
+      - name: NuGet login (OIDC)
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          # nuget.org profile name, not email. Set as a repo/environment
+          # variable (Settings > Environments > nuget > Variables) rather
+          # than hardcoded here.
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Push to nuget.org
+        shell: bash
+        run: |
+          shopt -s nullglob
+          packages=(local-feed/*.nupkg)
+          if [[ ${#packages[@]} -eq 0 ]]; then
+            echo "::error::No .nupkg files found in local-feed/ to push."
+            exit 1
+          fi
+          for pkg in "${packages[@]}"; do
+            echo "Pushing ${pkg}..."
+            nuget push "${pkg}" \
+              -Source https://api.nuget.org/v3/index.json \
+              -ApiKey "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
+          done
