@@ -1,0 +1,23 @@
+JMCL Dataverse Deployment Template
+Copyright (c) 2026 Jeff Maughan
+
+Derived from the CDS Deployment Template by Scott Colson (Colson Code, LLC),
+used under the MIT License.
+
+This repository also vendors third-party components under
+DeploymentPackage/DevOps/Tools/. These are NOT part of this project and are
+redistributed under their own terms:
+
+  Adoxio.Dynamics.DevOps
+    Adoxio Business Solutions. Used for local solution and data
+    expand/compress operations only; opens no connection.
+
+  CCLLC.Cds.DevOps.PowerShell
+    Scott Colson / Colson Code, LLC. Copyright (c) 2022.
+    https://github.com/ScottColson/CCLLC.CDS.DevOps.PowerShell
+    Installed from the PowerShell Gallery. Provides Import-DocumentTemplates.
+    Retained unmodified under its original name.
+
+  CoreTools, ConfigurationMigration
+    Microsoft Corporation, redistributed under the terms in the
+    LicenseTerms.docx and notice files accompanying each.

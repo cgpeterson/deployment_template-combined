@@ -1,4 +1,4 @@
-param (
+﻿param (
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [PSCustomObject]
@@ -70,7 +70,9 @@ if($documentTemplatesExist){
 [string[]]$documentTemplateFiles = Get-ChildItem -Path $documentTemplateFolder -File | Select-Object -ExpandProperty Fullname
 }
 
-@{  
+@{
+	SolutionName = $solutionName
+
 	# ExportSolutions is used by export.ps1. Defines the managed and unmanaged solution(s) to export
 	# and the location to place the exported zip files.
 	ExportSolutions = [PSCustomObject]@{
@@ -78,13 +80,13 @@ if($documentTemplatesExist){
         Solutions = @(
             [PSCustomObject]@{
                 SolutionName = $solutionName
-                Managed = $false
-                ZipFile = "$exportFolder\ExportedSolution.zip"
+                Managed = $true
+                ZipFile = "$exportFolder\ExportedSolution_managed.zip"
             },
             [PSCustomObject]@{
                 SolutionName = $solutionName
-                Managed = $true
-                ZipFile = "$exportFolder\ExportedSolution_managed.zip"
+                Managed = $false
+                ZipFile = "$exportFolder\ExportedSolution.zip"
             }
         )
     }
