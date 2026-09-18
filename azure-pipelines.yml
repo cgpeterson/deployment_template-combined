@@ -25,7 +25,7 @@ steps:
     command: 'restore'
     restoreSolution: '$(solution)'
     feedsToUse: 'select'
-    vstsFeed: '0ddd6187-3494-46a5-b396-8f7be21064a3/dca352bc-32b5-4be1-8ff4-feab1bb0eb73'
+    vstsFeed: '<your-organization-project>/<your-feed-guid>'
 
 - task: VSBuild@1
   inputs:
@@ -55,7 +55,7 @@ steps:
     command: 'push'
     packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
     nuGetFeedType: 'internal'
-    publishVstsFeed: '0ddd6187-3494-46a5-b396-8f7be21064a3/dca352bc-32b5-4be1-8ff4-feab1bb0eb73'
+    publishVstsFeed: '<your-organization-project>/<your-feed-guid>'
     allowPackageConflicts: true
     
 - task: PublishBuildArtifacts@1

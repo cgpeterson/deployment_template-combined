@@ -106,14 +106,19 @@ here are commercial. Only the environment URL is per-developer; it comes from th
 ## Packaging
 
 `source.nuspec` publishes the `DevOps` scripts, tooling and the site config template as
-`JMCL.Dataverse.DeploymentTemplate.Sources`. A consuming repo installs it as a NuGet dependency and
-receives updates to this template centrally.
+`JMCL.Dataverse.DeploymentTemplate.Sources` on nuget.org. A consuming repo installs it as a NuGet
+dependency and receives updates to this template centrally.
 
 ## Pipeline
 
-`azure-pipelines.yml` and `DeploymentPackage/PipelineTemplate/azure-pipelines.yml` reflect an Azure
-DevOps setup and have not been carried forward to any other CI system. Treat them as reference
-rather than current, pending a decision on where this template's projects run CI going forward.
+`.github/workflows/publish.yml` packs and publishes `source.nuspec` to nuget.org on a `v*` tag,
+using trusted publishing (OIDC) -- no stored API key -- the same approach used by the JMCL code
+libraries.
+
+`azure-pipelines.yml` and `DeploymentPackage/PipelineTemplate/azure-pipelines.yml` are an earlier
+Azure DevOps setup, kept as reference rather than current. They are not wired to any live pipeline
+and their organization-specific feed ID and agent pool have been replaced with placeholders; revive
+them only if this template's publishing ever needs to move back to an Azure DevOps-hosted feed.
 
 ## Provenance
 
