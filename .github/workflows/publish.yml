@@ -20,13 +20,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Only nuget.exe supports packing directly from a .nuspec file; this
-      # package ships loose PowerShell/source content (JmclImportExtension.cs
-      # as raw source, DevOps/**), not a compiled DLL, so there is nothing for
-      # dotnet build/pack to do here.
       - uses: nuget/setup-nuget@v3
         with:
           nuget-version: '6.x'
+
+      - uses: microsoft/setup-msbuild@v3
+
+      # DeploymentPackage.csproj isn't shipped in the package -- source.nuspec
+      # only ever pulls JmclImportExtension.cs in as raw content -- but it's
+      # the one thing in this repo that's actually compiled, and
+      # JmclImportExtension.cs is both compiled here and shipped as source.
+      # Building it before packing is the same check Colson's original
+      # azure-pipelines.yml ran before its own pack/push (restore, VSBuild),
+      # just not carried over when this workflow was first written. Skipping
+      # it would let a broken JmclImportExtension.cs get packed and pushed
+      # with nothing catching it until a consumer's own build fails.
+      - name: Restore solution
+        run: nuget restore CdsDeploymentTemplate.sln
+
+      - name: Build solution
+        run: msbuild CdsDeploymentTemplate.sln /p:Configuration=Release /verbosity:minimal
 
       - name: Derive version from tag
         id: version
@@ -36,6 +49,11 @@ jobs:
           echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "Publishing version ${version}"
 
+      # Only nuget.exe supports packing directly from a .nuspec file; this
+      # package ships loose PowerShell/source content (JmclImportExtension.cs
+      # as raw source, DevOps/**), not a compiled DLL, so there is nothing for
+      # dotnet pack to do here even though the build step above does use
+      # msbuild.
       - name: Pack
         shell: bash
         run: |
