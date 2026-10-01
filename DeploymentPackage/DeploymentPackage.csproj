@@ -147,6 +147,7 @@
     <None Include="DevOps\Doctoring\UpdateSolutionVersion.ps1" />
     <None Include="DevOps\Export.ps1" />
     <None Include="DevOps\Import.ps1" />
+    <None Include="DevOps\Import-DocumentTemplates.ps1" />
     <None Include="DevOps\Install_PowerShell_Dependencies.ps1" />
     <None Include="DevOps\Install_SDK_Tools.ps1" />
     <None Include="DevOps\Tools\Adoxio.Dynamics.DevOps\Adoxio.Dynamics.DevOps.psd1" />

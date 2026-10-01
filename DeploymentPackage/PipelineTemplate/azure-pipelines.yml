@@ -22,16 +22,17 @@ variables:
 steps:
 - task: NuGetToolInstaller@1
 
+# The DeploymentPackage post-build packs the solution with pac (MSAL). No PowerShell modules are needed:
+# the Adoxio.Dynamics.DevOps functions the build uses are vendored under DevOps\Tools and have no
+# module dependencies, and the ADAL-based Microsoft.Xrm.Data.Powershell / ConfigurationMigration /
+# Microsoft.Xrm.DevOps.Data.PowerShell modules the build used to install are no longer used.
 - task: PowerShell@2
-  displayName: 'Install Supporting PowerShell Modules' 
+  displayName: 'Install PAC CLI'
   inputs:
     targetType: 'inline'
     script: |
-      # Import supporting PowerShell modules      
-      Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
-      Install-Module -Name Microsoft.Xrm.Data.Powershell -Force -Verbose -Scope CurrentUser
-      Install-Module -Name Microsoft.Xrm.Tooling.ConfigurationMigration -Force -Verbose -Scope CurrentUser
-      Install-Module -Name Microsoft.Xrm.DevOps.Data.PowerShell -Force -Verbose -Scope CurrentUser
+      dotnet tool install --global Microsoft.PowerApps.CLI.Tool
+      Write-Host "##vso[task.prependpath]$env:USERPROFILE\.dotnet\tools"
 
 - task: PowerShell@2
   displayName: 'Get solution version number'
