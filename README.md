@@ -37,6 +37,11 @@ cd DeploymentPackage\DevOps
 .\Install_SDK_Tools.ps1
 ```
 
+`Install_PowerShell_Dependencies.ps1` installs the Power Platform CLI (`pac`) and the `MSAL.PS`
+module, both for the current user only, so it does not need an elevated PowerShell. Every script
+that connects to an environment signs in with MSAL through one of those two; nothing uses ADAL or
+stores a password.
+
 `Install_SDK_Tools.ps1` downloads the SDK tooling into `DevOps\Tools` and creates
 `C:\CrmConnection\MyCdsSandboxConnection.ps1` from the template if it does not already exist.
 That file holds the developer's own sandbox details and lives outside the repository, so it is
@@ -81,11 +86,17 @@ solution that depends on others can be deployed to a fresh environment in one pa
 
 ### Document templates
 
-`Import-DocumentTemplates` (`-Actions Import-DocumentTemplates`, included under `All`) is provided
-by the vendored `CCLLC.Cds.DevOps.PowerShell` module and is the one path in this template still on
-the older `Get-CrmConnection` / ADAL authentication chain -- `pac` has no equivalent command. It
-reads `CrmConnectionParameter` from the connection file, which every other action in `Export.ps1`
-and `Import.ps1` no longer uses.
+`Import-DocumentTemplates` (`-Actions Import-DocumentTemplates`, included under `All`) imports every
+`.docx` and `.xlsx` in `DeploymentPackage\DocumentTemplates`, creating or updating the
+`documenttemplate` record with the same name. `pac` has no equivalent command, so
+`DevOps\Import-DocumentTemplates.ps1` does it through the Web API, signing in with MSAL (`MSAL.PS`)
+against `PacConnectionParameter.EnvironmentUrl`. Word templates embed their table's object type
+code, which differs between environments for custom tables; the script rewrites it to the target
+environment's value before uploading. Set `PacConnectionParameter.TenantId` in the connection file
+to pin the sign-in to one tenant.
+
+It replaces the vendored `CCLLC.Cds.DevOps.PowerShell` module, the last path in this template on the
+older `Get-CrmConnection` / ADAL authentication chain.
 
 ## Power Pages
 
