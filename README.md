@@ -15,12 +15,11 @@ DeploymentPackage/
     Stage-PortalChange.ps1         # correlate staged Power Pages files with solution components
     Upload-StagedPortalChanges.ps1 # push staged portal changes without clobbering others' work
     post-build.ps1                 # builds the deployment package on Release/Debug build
-    Install_SDK_Tools.ps1          # populates DevOps/Tools and the machine connection file
-    Install_PowerShell_Dependencies.ps1
+    Install_PowerShell_Dependencies.ps1 # installs pac and MSAL.PS, creates the machine connection file
     CdsConnectionParameters/       # per-environment connection files
     Doctoring/                     # solution XML normalization before commit
     Settings/DefaultSettings.ps1   # resolves paths, dependency ordering and package definition
-    Tools/                         # SDK tooling and third-party PowerShell modules; see NOTICE
+    Tools/                         # vendored Adoxio.Dynamics.DevOps module; see NOTICE
   Sites/_site-config/
     PortalToolkit.Config.psd1      # per-project Power Pages settings
   JmclImportExtension.cs           # Package Deployer import extension base class
@@ -34,7 +33,6 @@ Run once per machine:
 ```powershell
 cd DeploymentPackage\DevOps
 .\Install_PowerShell_Dependencies.ps1
-.\Install_SDK_Tools.ps1
 ```
 
 `Install_PowerShell_Dependencies.ps1` installs the Power Platform CLI (`pac`) and the `MSAL.PS`
@@ -42,8 +40,8 @@ module, both for the current user only, so it does not need an elevated PowerShe
 that connects to an environment signs in with MSAL through one of those two; nothing uses ADAL or
 stores a password.
 
-`Install_SDK_Tools.ps1` downloads the SDK tooling into `DevOps\Tools` and creates
-`C:\CrmConnection\MyCdsSandboxConnection.ps1` from the template if it does not already exist.
+It also creates `C:\CrmConnection\MyCdsSandboxConnection.ps1` from the template if it does not
+already exist.
 That file holds the developer's own sandbox details and lives outside the repository, so it is
 shared by every solution repo on the machine and cannot be committed by accident. Edit it before
 running anything else — see the comments in

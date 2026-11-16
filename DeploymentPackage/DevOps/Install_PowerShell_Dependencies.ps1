@@ -27,3 +27,21 @@ else {
     dotnet tool install --global Microsoft.PowerApps.CLI.Tool
     Write-Host "Installed pac. Open a new terminal (or restart Visual Studio) so it is on PATH."
 }
+
+# Provision the developer sandbox connection file at the location the DevOps scripts read. It lives
+# outside the repo so it is never committed and is shared by every solution repo on this machine. An
+# existing file is left alone, so re-running this script does not wipe values a developer already filled in.
+$connectionFolder = "C:\CrmConnection"
+$connectionFile   = Join-Path $connectionFolder "MyCdsSandboxConnection.ps1"
+
+if (-not (Test-Path $connectionFolder)) {
+    New-Item -ItemType Directory -Path $connectionFolder | Out-Null
+}
+
+if (Test-Path $connectionFile) {
+    Write-Host "Existing connection file left in place: $connectionFile"
+} else {
+    Copy-Item "$PSScriptRoot\CdsConnectionParameters\MyCdsSandboxConnection-Template.ps1" -Destination $connectionFile
+    Write-Host "Created $connectionFile"
+    Write-Host "Edit it with your sandbox details before running Export.ps1 or Import.ps1."
+}
