@@ -11,9 +11,3 @@ redistributed under their own terms:
   Adoxio.Dynamics.DevOps
     Adoxio Business Solutions. Used for local data expand/compress and
     package assembly only; opens no connection.
-
-  CCLLC.Cds.DevOps.PowerShell
-    Scott Colson / Colson Code, LLC. Copyright (c) 2022.
-    https://github.com/ScottColson/CCLLC.CDS.DevOps.PowerShell
-    Installed from the PowerShell Gallery. Provides Import-DocumentTemplates.
-    Retained unmodified under its original name.
