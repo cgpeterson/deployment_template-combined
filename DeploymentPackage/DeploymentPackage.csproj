@@ -152,7 +152,6 @@
     <None Include="DevOps\Tools\Adoxio.Dynamics.DevOps\Adoxio.Dynamics.DevOps.psd1" />
     <None Include="DevOps\Tools\Adoxio.Dynamics.DevOps\Adoxio.Dynamics.DevOps.psm1" />
     <None Include="DevOps\Settings\DefaultSettings.ps1" />
-    <None Include="DevOps\Tools\MyCdsSandboxConnection.ps1" />
     <None Include="packages.config" />
     <None Include="DevOps\post-build.ps1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
