@@ -32,6 +32,6 @@
   <files>
     <file src="JmclImportExtension.cs" target="content/" />
     <file src="DevOps\**\*.ps1" target="content/DevOps" />
-    <file src="DevOps\Tools\**" target="content/DevOps/Tools" exclude="DevOps\Tools\MyCdsSandboxConnection.ps1" />
+    <file src="DevOps\Tools\**" target="content/DevOps/Tools" />
   </files>
 </package>
