@@ -6,6 +6,8 @@
     <description>PowerShell scripts and base template for creating deployment packages for Power Apps and Dynamics CE.</description>
     <authors>Jeff Maughan</authors>
     <owners>Jeff Maughan</owners>
+    <license type="expression">MIT</license>
+    <copyright>Copyright (c) 2020 Scott Colson. Copyright (c) 2026 Jeff Maughan and Cody G. Peterson.</copyright>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>    
     <projectUrl>https://github.com/geophray/deployment_template</projectUrl>
     <tags></tags>

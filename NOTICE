@@ -1,5 +1,5 @@
 JMCL Dataverse Deployment Template
-Copyright (c) 2026 Jeff Maughan
+Copyright (c) 2026 Jeff Maughan and Cody G. Peterson
 
 Derived from the CDS Deployment Template by Scott Colson (Colson Code, LLC),
 used under the MIT License.
@@ -10,4 +10,11 @@ redistributed under their own terms:
 
   Adoxio.Dynamics.DevOps
     Adoxio Business Solutions. Used for local data expand/compress and
-    package assembly only; opens no connection.
+    package assembly only; opens no connection. Used under the MIT License:
+
+      Copyright (c) 2018 KPMG Adoxio Business Solutions Ltd.
+
+    Its original repository (github.com/Adoxio/Adoxio.Dynamics.DevOps) is
+    no longer online. The module was published under the MIT License, and
+    its PowerShell Gallery manifest links to that license. The permission
+    and warranty text is the same as the MIT License in LICENSE.
