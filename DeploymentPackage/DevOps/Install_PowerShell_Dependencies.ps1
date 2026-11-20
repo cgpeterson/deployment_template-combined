@@ -3,7 +3,10 @@
 #
 # Everything that connects to an environment signs in with MSAL:
 #   - Power Platform CLI (pac): solution export/import/pack, data export/import, Import.ps1 -ResetEnvironment
-#   - MSAL.PS: Import-DocumentTemplates.ps1 and Upload-StagedPortalChanges.ps1
+#   - Az.Accounts: Import-DocumentTemplates.ps1 and Upload-StagedPortalChanges.ps1
+#
+# Both are pinned so every machine and the pipeline run the same, tested versions. Bump them here
+# (and pac in PipelineTemplate\azure-pipelines.yml) on purpose, after testing.
 #
 # The ADAL-based modules this script used to install (Microsoft.Xrm.Data.PowerShell,
 # Microsoft.Xrm.Tooling.ConfigurationMigration, Microsoft.Xrm.Tooling.PackageDeployment.PowerShell,
@@ -12,6 +15,9 @@
 # scripts need are vendored under DevOps\Tools.
 
 $ErrorActionPreference = "Stop"
+
+$pacVersion        = "2.14.1"
+$azAccountsVersion = "5.5.5"
 
 # Provision the developer sandbox connection file at the location the DevOps scripts read. It lives
 # outside the repo so it is never committed and is shared by every solution repo on this machine. An
@@ -37,12 +43,15 @@ if (-not (Get-PackageProvider -ListAvailable -Name NuGet -ErrorAction SilentlyCo
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope CurrentUser | Out-Null
 }
 
-Install-Module MSAL.PS -Scope CurrentUser -Force -AllowClobber
+Install-Module Az.Accounts -RequiredVersion $azAccountsVersion -Scope CurrentUser -Repository PSGallery -Force
 
-if (Get-Command pac -ErrorAction SilentlyContinue) {
-    dotnet tool update --global Microsoft.PowerApps.CLI.Tool
+# Check the dotnet tool list rather than Get-Command pac: pac from the MSI or the VS Code extension
+# is also on PATH, and dotnet tool update fails for a tool it didn't install.
+if (dotnet tool list --global | Select-String -Pattern '^microsoft\.powerapps\.cli\.tool\s') {
+    dotnet tool update --global Microsoft.PowerApps.CLI.Tool --version $pacVersion --allow-downgrade
 }
 else {
-    dotnet tool install --global Microsoft.PowerApps.CLI.Tool
+    dotnet tool install --global Microsoft.PowerApps.CLI.Tool --version $pacVersion
     Write-Host "Installed pac. Open a new terminal (or restart Visual Studio) so it is on PATH."
 }
+if ($LASTEXITCODE -ne 0) { throw "pac $pacVersion install failed (exit $LASTEXITCODE). It needs the .NET 8 SDK or later." }

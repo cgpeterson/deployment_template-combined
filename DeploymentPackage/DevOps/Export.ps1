@@ -136,7 +136,7 @@ if ('PortalPages' -in $Actions) {
         $config   = Import-PowerShellDataFile $configPath
         $zeroGuid = '00000000-0000-0000-0000-000000000000'
 
-        foreach ($field in @('TenantId', 'SiteWebsiteId', 'MsalPublicClientId')) {
+        foreach ($field in @('TenantId', 'SiteWebsiteId')) {
             if ($config.$field -eq $zeroGuid) {
                 throw "PortalToolkit.Config.psd1: '$field' is still a placeholder (all-zero GUID). Replace it with the real value before running."
             }

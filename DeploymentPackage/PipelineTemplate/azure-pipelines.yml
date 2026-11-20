@@ -30,7 +30,8 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      dotnet tool install --global Microsoft.PowerApps.CLI.Tool
+      # Pinned to match Install_PowerShell_Dependencies.ps1
+      dotnet tool install --global Microsoft.PowerApps.CLI.Tool --version 2.14.1
       Write-Host "##vso[task.prependpath]$env:USERPROFILE\.dotnet\tools"
 
 - task: PowerShell@2
@@ -41,8 +42,9 @@ steps:
     script: |
       $fileName = $Env:BUILD_SOURCESDIRECTORY + '\DeploymentPackage\CdsSolution\Other\solution.xml'
       [xml] $xdoc = get-content $fileName
-      $date = $(Get-Date([datetime]::UtcNow) -UFormat "0.%Y.%m%d.%H%M")
       $version = $xdoc.ImportExportXml.SolutionManifest.Version
+      # Same major as the solution, matching Export.ps1's version stamp
+      $date = "$(([version]$version).Major)." + $(Get-Date([datetime]::UtcNow) -UFormat "%Y.%m%d.%H%M")
       Write-Host "##vso[task.setvariable variable=solutionversion]$version"
       Write-Host "##vso[task.setvariable variable=utcdate]$date"
 

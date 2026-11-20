@@ -15,7 +15,9 @@ DeploymentPackage/
     Stage-PortalChange.ps1         # correlate staged Power Pages files with solution components
     Upload-StagedPortalChanges.ps1 # push staged portal changes without clobbering others' work
     post-build.ps1                 # builds the deployment package on Release/Debug build
-    Install_PowerShell_Dependencies.ps1 # installs pac and MSAL.PS, creates the machine connection file
+    Install_PowerShell_Dependencies.ps1 # installs pac and Az.Accounts, creates the machine connection file
+    Get-DataverseAccessToken.ps1   # Web API sign-in for the scripts pac can't cover
+    Merge-CrmDataZip.ps1           # merges config/test data zips into the package's one data file
     CdsConnectionParameters/       # per-environment connection files
     Doctoring/                     # solution XML normalization before commit
     Settings/DefaultSettings.ps1   # resolves paths, dependency ordering and package definition
@@ -35,10 +37,11 @@ cd DeploymentPackage\DevOps
 .\Install_PowerShell_Dependencies.ps1
 ```
 
-`Install_PowerShell_Dependencies.ps1` installs the Power Platform CLI (`pac`) and the `MSAL.PS`
-module, both for the current user only, so it does not need an elevated PowerShell. Every script
-that connects to an environment signs in with MSAL through one of those two; nothing uses ADAL or
-stores a password.
+`Install_PowerShell_Dependencies.ps1` installs the Power Platform CLI (`pac`) and the `Az.Accounts`
+module, both for the current user only, so it does not need an elevated PowerShell. Both versions
+are pinned at the top of the script (pac also in `PipelineTemplate/azure-pipelines.yml`), so every
+machine runs what was tested; bump them there on purpose. Every script that connects to an
+environment signs in with MSAL through one of those two; nothing uses ADAL or stores a password.
 
 It also creates `C:\CrmConnection\MyCdsSandboxConnection.ps1` from the template if it does not
 already exist.
@@ -82,13 +85,40 @@ internally consistent even though they are arbitrary.
 order, and prepends them to the target solution. `Import.ps1` imports that list in order, so a
 solution that depends on others can be deployed to a fresh environment in one pass.
 
+### Solution version
+
+`Export.ps1` stamps the solution version as `<major>.<yyyy>.<MMdd>.<HHmm>` (UTC), keeping the
+major version the solution already has. A solution at 1.x stays at 1.x instead of dropping to 0.x,
+which Package Deployer would skip as older than what's installed. To raise the major, change the
+solution's version in the maker portal and export.
+
+### Deployment settings and test data
+
+If `DeploymentPackage\DeploymentSettings\<ConnectionName>.json` exists, `Import.ps1` passes it to
+`pac solution import --settings-file` for the project's own solution, which sets its connection
+references and environment variables for that environment. Make one with
+`pac solution create-settings`.
+
+Test data only imports into environments whose connection file sets
+`PacConnectionParameter.AllowTestData = $true`. The sandbox template sets it; leave it out of any
+connection file for Prod. Asking for `-Actions TestData` against a connection without it fails
+before anything runs.
+
+### Package data
+
+Package Deployer imports a single data file, so `Import.ps1` merges the dependencies' config data
+and the project's own into `temp\packed\PackageConfigData.zip` whenever it builds the package.
+Records with the same id keep the project's copy. Test data is merged in too when the action asks
+for it and the connection allows it.
+
 ### Document templates
 
 `Import-DocumentTemplates` (`-Actions Import-DocumentTemplates`, included under `All`) imports every
 `.docx` and `.xlsx` in `DeploymentPackage\DocumentTemplates`, creating or updating the
 `documenttemplate` record with the same name. `pac` has no equivalent command, so
-`DevOps\Import-DocumentTemplates.ps1` does it through the Web API, signing in with MSAL (`MSAL.PS`)
-against `PacConnectionParameter.EnvironmentUrl`. Word templates embed their table's object type
+`DevOps\Import-DocumentTemplates.ps1` does it through the Web API, signing in with `Az.Accounts`
+(Microsoft's documented route for the Dataverse Web API from PowerShell) against
+`PacConnectionParameter.EnvironmentUrl`. Word templates embed their table's object type
 code, which differs between environments for custom tables; the script rewrites it to the target
 environment's value before uploading. Set `PacConnectionParameter.TenantId` in the connection file
 to pin the sign-in to one tenant.

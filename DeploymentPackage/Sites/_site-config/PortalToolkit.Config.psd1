@@ -26,10 +26,6 @@
     # Find via: pac pages list (after authenticating to the env)
     SiteWebsiteId          = "00000000-0000-0000-0000-000000000000"
     
-    # Auth — Microsoft public client used for delegated MSAL flows.
-    # This is constant across tenants; do not change unless you know why.
-    MsalPublicClientId     = "51f81489-12ee-4a9e-aaae-a2591f45987d"
-    
     # Patcher config — folder types Phase 2 of Upload-StagedPortalChanges
     # should patch via Web API to work around pac field-drop bugs.
     # Each entry maps a pac-download folder type to its Dataverse table info.
