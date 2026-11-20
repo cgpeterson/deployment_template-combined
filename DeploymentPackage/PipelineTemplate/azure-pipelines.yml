@@ -13,7 +13,6 @@ variables:
   solution: '**/**.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  CRM_SDK_PATH: 'C:/hostedtoolcache/windows\CdsDevTools\Tools'
   Version.Revision: '$(Build.SourceBranchName)'
   Version.Formatted: '$(Build.BuildNumber)'
   utcdate: ''
